@@ -2,3 +2,7 @@ npm-debug.log
 node_modules/
 README.html
 endpoint.txt
+.DS_Store
+
+# VIM Backup Files
+*.swp
