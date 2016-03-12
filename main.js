@@ -18,18 +18,18 @@ nameInput.value = 'Bob';
 
 Notification.requestPermission();
 
-window.addEventListener('load', function() {   
-  subBtn.addEventListener('click', function() {  
-    if (isPushEnabled) {  
-      unsubscribe();  
-    } else {  
-      subscribe();  
-    }  
+window.addEventListener('load', function() {
+  subBtn.addEventListener('click', function() {
+    if (isPushEnabled) {
+      unsubscribe();
+    } else {
+      subscribe();
+    }
   });
 
-  // Check that service workers are supported, if so, progressively  
-  // enhance and add push messaging support, otherwise continue without it.  
-  if ('serviceWorker' in navigator) {  
+  // Check that service workers are supported, if so, progressively
+  // enhance and add push messaging support, otherwise continue without it.
+  if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('sw.js').then(function(reg) {
       if(reg.installing) {
         console.log('Service worker installing');
@@ -40,59 +40,59 @@ window.addEventListener('load', function() {
       }
 
       initialiseState(reg);
-    });  
-  } else {  
-    console.log('Service workers aren\'t supported in this browser.');  
-  }  
+    });
+  } else {
+    console.log('Service workers aren\'t supported in this browser.');
+  }
 });
 
 
-// Once the service worker is registered set the initial state  
-function initialiseState(reg) {  
-  // Are Notifications supported in the service worker?  
-  if (!(reg.showNotification)) {  
-    console.log('Notifications aren\'t supported on service workers.');  
-    useNotifications = false;  
+// Once the service worker is registered set the initial state
+function initialiseState(reg) {
+  // Are Notifications supported in the service worker?
+  if (!(reg.showNotification)) {
+    console.log('Notifications aren\'t supported on service workers.');
+    useNotifications = false;
   } else {
-    useNotifications = true; 
+    useNotifications = true;
   }
 
-  // Check the current Notification permission.  
-  // If its denied, it's a permanent block until the  
-  // user changes the permission  
-  if (Notification.permission === 'denied') {  
-    console.log('The user has blocked notifications.');  
-    return;  
+  // Check the current Notification permission.
+  // If its denied, it's a permanent block until the
+  // user changes the permission
+  if (Notification.permission === 'denied') {
+    console.log('The user has blocked notifications.');
+    return;
   }
 
-  // Check if push messaging is supported  
-  if (!('PushManager' in window)) {  
-    console.log('Push messaging isn\'t supported.');  
-    return;  
+  // Check if push messaging is supported
+  if (!('PushManager' in window)) {
+    console.log('Push messaging isn\'t supported.');
+    return;
   }
 
-  // We need the service worker registration to check for a subscription  
-  navigator.serviceWorker.ready.then(function(reg) {  
-    // Do we already have a push message subscription?  
-    reg.pushManager.getSubscription()  
-      .then(function(subscription) {  
-        // Enable any UI which subscribes / unsubscribes from  
-        // push messages.  
- 
+  // We need the service worker registration to check for a subscription
+  navigator.serviceWorker.ready.then(function(reg) {
+    // Do we already have a push message subscription?
+    reg.pushManager.getSubscription()
+      .then(function(subscription) {
+        // Enable any UI which subscribes / unsubscribes from
+        // push messages.
+
         subBtn.disabled = false;
 
-        if (!subscription) {  
+        if (!subscription) {
           console.log('Not yet subscribed to Push')
-          // We aren't subscribed to push, so set UI  
-          // to allow the user to enable push  
-          return;  
+          // We aren't subscribed to push, so set UI
+          // to allow the user to enable push
+          return;
         }
 
-        // Set your UI to show they have subscribed for  
-        // push messages  
-        subBtn.textContent = 'Unsubscribe from Push Messaging';  
-        isPushEnabled = true;  
-        
+        // Set your UI to show they have subscribed for
+        // push messages
+        subBtn.textContent = 'Unsubscribe from Push Messaging';
+        isPushEnabled = true;
+
         // initialize status, which includes setting UI elements for subscribed status
         // and updating Subscribers list via push
         console.log(subscription.toJSON());
@@ -100,10 +100,10 @@ function initialiseState(reg) {
         var key = subscription.getKey('p256dh');
         console.log(key);
         updateStatus(endpoint,key,'init');
-      })  
-      .catch(function(err) {  
-        console.log('Error during getSubscription()', err);  
-      }); 
+      })
+      .catch(function(err) {
+        console.log('Error during getSubscription()', err);
+      });
 
       // set up a message channel to communicate with the SW
       var channel = new MessageChannel();
@@ -111,10 +111,10 @@ function initialiseState(reg) {
         console.log(e);
         handleChannelMessage(e.data);
       }
-      
+
       mySW = reg.active;
       mySW.postMessage('hello', [channel.port2]);
-  });  
+  });
 }
 
 
@@ -139,7 +139,7 @@ function subscribe() {
             isPushEnabled = true;
             subBtn.textContent = 'Unsubscribe from Push Messaging';
             subBtn.disabled = false;
-            
+
             // Update status to subscribe current user on server, and to let
             // other users know this user has subscribed
             var endpoint = subscription.endpoint;
@@ -153,7 +153,7 @@ function subscribe() {
               // to manually change the notification permission to
               // subscribe to push messages
               console.log('Permission for Notifications was denied');
-              
+
             } else {
               // A problem occurred with the subscription, this can
               // often be down to an issue or lack of the gcm_sender_id
@@ -165,7 +165,7 @@ function subscribe() {
           });
       });
   //   }
-  // });  
+  // });
 }
 
 function unsubscribe() {
@@ -178,7 +178,7 @@ function unsubscribe() {
       function(subscription) {
 
         // Update status to unsubscribe current user from server (remove details)
-        // and let other subscribers know they have unsubscribed  
+        // and let other subscribers know they have unsubscribed
         var endpoint = subscription.endpoint;
         var key = subscription.getKey('p256dh');
         updateStatus(endpoint,key,'unsubscribe');
@@ -192,7 +192,7 @@ function unsubscribe() {
           subBtn.textContent = 'Subscribe to Push Messaging';
           return;
         }
-        
+
         isPushEnabled = false;
 
         // setTimeout used to stop unsubscribe being called before the message
@@ -224,14 +224,14 @@ function unsubscribe() {
 
 function postSubscribeObj(statusType, name, endpoint, key) {
     // Create a new XHR and send an array to the server containing
-    // the type of the request, the name of the user subscribing, 
+    // the type of the request, the name of the user subscribing,
     // and the push subscription endpoint + key the server needs
     // to send push messages
     var request = new XMLHttpRequest();
 
-    request.open('POST', 'https://localhost:7000');
+    request.open('POST', window.location.origin);
     request.setRequestHeader('Content-Type', 'application/json');
-    
+
     var subscribeObj = {
                          statusType: statusType,
                          name: nameInput.value,
@@ -245,7 +245,7 @@ function postSubscribeObj(statusType, name, endpoint, key) {
 function updateStatus(endpoint,key,statusType) {
     console.log("updateStatus, endpoint: " + endpoint);
     console.log("updateStatus, key: " + key);
-    
+
   // If we are subscribing to push
   if(statusType === 'subscribe' || statusType === 'init') {
     // Create the input and button to allow sending messages
@@ -259,7 +259,7 @@ function updateStatus(endpoint,key,statusType) {
     controlsBlock.appendChild(sendInput);
 
     // Set up a listener so that when the Send Chat Message button is clicked,
-    // the sendChatMessage() function is fun, which handles sending the message 
+    // the sendChatMessage() function is fun, which handles sending the message
     sendBtn.onclick = function() {
       sendChatMessage(sendInput.value);
     }
@@ -272,7 +272,7 @@ function updateStatus(endpoint,key,statusType) {
     // Remove the UI elements we added when we subscribed
     controlsBlock.removeChild(sendBtn);
     controlsBlock.removeChild(sendInput);
-    
+
     postSubscribeObj(statusType, name, endpoint, key);
 
   }
@@ -300,19 +300,19 @@ function handleChannelMessage(data) {
 }
 
 function sendChatMessage(chatMsg) {
-  navigator.serviceWorker.ready.then(function(reg) {  
+  navigator.serviceWorker.ready.then(function(reg) {
     // Find push message subscription, then retrieve it
     reg.pushManager.getSubscription().then(function(subscription) {
       var endpoint = subscription.endpoint;
       var key = subscription.getKey('p256dh');
       // Create a new XHR and send an object to the server containing
-      // the type of the request, the name of the user unsubscribing, 
-      // and the associated push subscription 
+      // the type of the request, the name of the user unsubscribing,
+      // and the associated push subscription
       var request = new XMLHttpRequest();
 
-      request.open('POST', 'https://localhost:7000');
+      request.open('POST', window.location.origin);
       request.setRequestHeader('Content-Type', 'application/json');
-    
+
       var messageObj = {
                           statusType: 'chatMsg',
                           name: nameInput.value,
